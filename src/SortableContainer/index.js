@@ -72,6 +72,8 @@ export default function sortableContainer(WrappedComponent, config = {withRef: f
       onSortOver: PropTypes.func,
       onSortEnd: PropTypes.func,
       shouldCancelStart: PropTypes.func,
+      onHelperMove: PropTypes.func,
+      shouldScroll: PropTypes.func,
       pressDelay: PropTypes.number,
       useDragHandle: PropTypes.bool,
       useWindowAsScrollContainer: PropTypes.bool,
@@ -534,7 +536,7 @@ export default function sortableContainer(WrappedComponent, config = {withRef: f
     }
 
     updatePosition(e) {
-      const {lockAxis, lockToContainerEdges} = this.props;
+      const {lockAxis, lockToContainerEdges, onHelperMove} = this.props;
 
       const offset = this.getOffset(e);
       const translate = {
@@ -574,6 +576,16 @@ export default function sortableContainer(WrappedComponent, config = {withRef: f
         translate.y = 0;
       } else if (lockAxis === 'y') {
         translate.x = 0;
+      }
+
+      if (onHelperMove) {
+        const movedTranslate = onHelperMove({
+          translate: translate,
+          offset: offset,
+          helper: this.helper
+        });
+        translate.x = movedTranslate.x;
+        translate.y = movedTranslate.y;
       }
 
       this.helper.style[
@@ -753,6 +765,7 @@ export default function sortableContainer(WrappedComponent, config = {withRef: f
     }
 
     autoscroll = () => {
+      const {shouldScroll} = this.props;
       const translate = this.translate;
       const direction = {
         x: 0,
@@ -781,6 +794,25 @@ export default function sortableContainer(WrappedComponent, config = {withRef: f
         speed.x = acceleration.x * Math.abs((translate.x - this.width / 2 - this.minTranslate.x) / this.width);
       }
 
+      const testShouldScroll = () => {
+        if (shouldScroll) {
+          let result = shouldScroll({
+            helper: this.helper,
+            scroll: {
+              top: this.scrollContainer.scrollTop,
+              left: this.scrollContainer.scrollLeft
+            }
+          });
+          if (!result) {
+            clearInterval(this.autoscrollInterval);
+            this.autoscrollInterval = null;
+            this.isAutoScrolling = false;
+          }
+          return result;
+        }
+        return true;
+      };
+
       if (this.autoscrollInterval) {
         clearInterval(this.autoscrollInterval);
         this.autoscrollInterval = null;
@@ -788,21 +820,25 @@ export default function sortableContainer(WrappedComponent, config = {withRef: f
       }
 
       if (direction.x !== 0 || direction.y !== 0) {
-        this.autoscrollInterval = setInterval(
-          () => {
-            this.isAutoScrolling = true;
-            const offset = {
-              left: 1 * speed.x * direction.x,
-              top: 1 * speed.y * direction.y,
-            };
-            this.scrollContainer.scrollTop += offset.top;
-            this.scrollContainer.scrollLeft += offset.left;
-            this.translate.x += offset.left;
-            this.translate.y += offset.top;
-            this.animateNodes();
-          },
-          5
-        );
+        if (testShouldScroll()) {
+          this.autoscrollInterval = setInterval(
+            () => {
+              this.isAutoScrolling = true;
+              const offset = {
+                left: 1 * speed.x * direction.x,
+                top: 1 * speed.y * direction.y,
+              };
+              this.scrollContainer.scrollTop += offset.top;
+              this.scrollContainer.scrollLeft += offset.left;
+              this.translate.x += offset.left;
+              this.translate.y += offset.top;
+              this.animateNodes();
+
+              testShouldScroll();
+            },
+            5
+          );
+        }
       }
     };
 
