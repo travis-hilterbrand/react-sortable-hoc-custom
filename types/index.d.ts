@@ -41,6 +41,29 @@ export type SortOverHandler = (sort: SortOver, event: SortEvent) => void;
 
 export type ContainerGetter = (element: React.ReactElement<any>) => HTMLElement;
 
+// custom Five9
+export type HelperDragDim = {
+  x: number;
+  y: number;
+}
+export type HelperMoveProps = {
+  translate: HelperDragDim;
+  offset: HelperDragDim;
+  helper: HTMLElement;
+}
+export type HelperMoveHandler = (props: HelperMoveProps) => HelperDragDim;
+
+export type ShouldScrollProps = {
+  helper: HTMLElement;
+  scroll: {
+    left: number;
+    top: number;
+  }
+}
+export type ShouldScrollHandler = (props: ShouldScrollProps) => boolean;
+// custom Five9
+
+
 export interface Dimensions {
   width: number;
   height: number;
@@ -66,6 +89,10 @@ export interface SortableContainerProps {
   lockOffset?: Offset | [Offset, Offset];
   getContainer?: ContainerGetter;
   getHelperDimensions?: (sort: SortStart) => Dimensions;
+  // custom Five9
+  onHelperMove?: HelperMoveHandler;
+  shouldScroll?: ShouldScrollHandler;
+  // custom Five9
 }
 
 export interface SortableElementProps {

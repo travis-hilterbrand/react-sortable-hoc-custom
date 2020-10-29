@@ -1,12 +1,12 @@
-import React, {Component} from 'react';
+import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import {findDOMNode} from 'react-dom';
+import { findDOMNode } from 'react-dom';
 import invariant from 'invariant';
 
-import {provideDisplayName, omit} from '../utils';
+import { provideDisplayName, omit } from '../utils';
 
 // Export Higher Order Sortable Element Component
-export default function sortableElement(WrappedComponent, config = {withRef: false}) {
+export default function sortableElement(WrappedComponent, config = { withRef: false }) {
   return class extends Component {
     static displayName = provideDisplayName('sortableElement', WrappedComponent);
 
@@ -25,19 +25,21 @@ export default function sortableElement(WrappedComponent, config = {withRef: fal
     };
 
     componentDidMount() {
-      const {collection, disabled, index} = this.props;
+      const { collection, disabled, index } = this.props;
 
       if (!disabled) {
         this.setDraggable(collection, index);
       }
     }
 
-    componentWillReceiveProps(nextProps) {
+    // THIS MUST BE CONVERTED for React 18
+    // see https://reactjs.org/blog/2018/03/27/update-on-async-rendering.html
+    UNSAFE_componentWillReceiveProps(nextProps) {
       if (this.props.index !== nextProps.index && this.node) {
         this.node.sortableInfo.index = nextProps.index;
       }
       if (this.props.disabled !== nextProps.disabled) {
-        const {collection, disabled, index} = nextProps;
+        const { collection, disabled, index } = nextProps;
         if (disabled) {
           this.removeDraggable(collection);
         } else {
@@ -50,7 +52,7 @@ export default function sortableElement(WrappedComponent, config = {withRef: fal
     }
 
     componentWillUnmount() {
-      const {collection, disabled} = this.props;
+      const { collection, disabled } = this.props;
 
       if (!disabled) this.removeDraggable(collection);
     }
@@ -64,7 +66,7 @@ export default function sortableElement(WrappedComponent, config = {withRef: fal
         manager: this.context.manager,
       };
 
-      this.ref = {node};
+      this.ref = { node };
       this.context.manager.add(collection, this.ref);
     }
 

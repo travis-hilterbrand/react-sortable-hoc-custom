@@ -1,7 +1,7 @@
 {
-  "name": "react-sortable-hoc",
+  "name": "react-sortable-hoc-five9",
   "version": "0.7.2",
-  "description": "Set of higher-order components to turn any list into a sortable, touch-friendly, animated list",
+  "description": "[no longer supported by author].  Contains custom mods from Five9.  Set of higher-order components to turn any list into a sortable, touch-friendly, animated list",
   "author": {
     "name": "Clauderic Demers",
     "email": "me@ced.io"
